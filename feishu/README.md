@@ -143,5 +143,5 @@ python feishu/write_to_feishu.py
 
 ## 最终飞书文档
 
-- 文档链接：
-- 截图路径：
+- 文档链接：<https://feishu.cn/docx/PAAId8BK4oeSJxxCGnscZqQrnlb>
+- 截图路径：如需提交截图，可在飞书文档打开后另存到 `output/` 目录。

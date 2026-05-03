@@ -2,247 +2,125 @@
 
 ## 1. 交付结果
 
-本次已完成两类交付：
+本仓库已沉淀一套可复现的飞书自动化写入方案，用于把以下内容写入飞书 Docx 文档：
 
-- 小红书短视频脚本：`script.md`
-- 飞书文档自动化写入：已通过飞书开放平台 API 创建并写入文档
+- `output/final_script.md`
+- `output/storyboard.md`
+- `output/risk_check.md`
 
-当前可访问的飞书文档：
+最终飞书文档：
 
-- 最新 API 直连写入版：<https://feishu.cn/docx/PAAId8BK4oeSJxxCGnscZqQrnlb>
-- 早前 lark-cli 写入版：<https://www.feishu.cn/docx/A2N7dhhWdohftDx0Ncjc7HxWnCh>
+<https://feishu.cn/docx/PAAId8BK4oeSJxxCGnscZqQrnlb>
 
-本次自动化写入不是手动复制粘贴，而是通过脚本读取 Markdown 内容后调用飞书接口创建文档并写入正文。
+## 2. 推荐方案：Python Open API 直连
 
-## 2. 本地文件清单
-
-当前工作目录：
+推荐使用仓库内脚本：
 
 ```text
-C:\Users\31963\Documents\Codex\2026-05-02\1-2-3-4-0-22
+feishu/write_to_feishu.py
 ```
 
-核心文件：
+脚本执行链路：
 
-| 文件 | 用途 |
-|---|---|
-| `script.md` | 最终 60-90 秒小红书短视频脚本，可直接给博主推进录制 |
-| `feishu_write_direct.js` | 本次实际成功使用的飞书 Open API 直连写入脚本 |
-| `write_feishu.ps1` | 基于本机 `feishu-doc` skill 的封装脚本，目前因依赖缺失作为备用 |
-| `README.md` | 原始交付说明 |
-| `README_飞书接入说明_优化版.md` | 当前这份整理后的接入说明 |
-| `ling_profile.png` | 凌二七主页实时截图证据 |
-| `wenjing_profile.png` | 文静不pang 主页实时截图证据 |
-
-## 3. 推荐接入方案：Open API 直连写入
-
-推荐使用 `feishu_write_direct.js`。它不依赖本地缺失的 `feishu-common` 模块，流程更短、更可控。
-
-### 3.1 执行流程
-
-1. 从环境变量读取 `FEISHU_APP_ID` 和 `FEISHU_APP_SECRET`。
-2. 调用飞书接口获取 `tenant_access_token`。
-3. 调用 `docx/v1/documents` 创建飞书 Docx 文档。
-4. 读取本地 `script.md`。
-5. 将 Markdown 转换为飞书文档 blocks。
-6. 批量写入飞书文档。
-7. 输出 `doc_token`、文档链接和写入 block 数。
-
-### 3.2 运行命令
-
-在 PowerShell 中进入工作目录：
-
-```powershell
-cd "C:\Users\31963\Documents\Codex\2026-05-02\1-2-3-4-0-22"
+```text
+读取 output/final_script.md + output/storyboard.md + output/risk_check.md
+  -> 获取 tenant_access_token
+  -> 写入已有 Docx 或创建新 Docx
+  -> 调用 Markdown 转 block API
+  -> 批量写入飞书文档 blocks
+  -> 输出 Document ID
 ```
 
-临时注入飞书应用凭证：
+## 3. 环境变量
+
+复制 `feishu/.env.example` 为 `feishu/.env`，或在 PowerShell 中临时注入：
 
 ```powershell
 $env:FEISHU_APP_ID="cli_xxx"
-$env:FEISHU_APP_SECRET="你的 App Secret"
+$env:FEISHU_APP_SECRET="your_app_secret"
 ```
 
-执行写入：
+写入已有文档：
 
 ```powershell
-& "C:\Users\31963\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" ".\feishu_write_direct.js"
+$env:FEISHU_DOCUMENT_ID="your_docx_document_id"
 ```
 
-成功输出示例：
-
-```json
-{
-  "title": "Qingxing x Ling Erqi XHS Video Script",
-  "doc_token": "PAAId8BK4oeSJxxCGnscZqQrnlb",
-  "url": "https://feishu.cn/docx/PAAId8BK4oeSJxxCGnscZqQrnlb",
-  "blocks_added": 65
-}
-```
-
-### 3.3 凭证安全说明
-
-- 不建议把 `App Secret` 写入 README、脚本或配置文件。
-- 推荐只通过环境变量临时注入。
-- 运行完成后，如需清理当前 PowerShell 会话中的变量：
+创建新文档：
 
 ```powershell
-Remove-Item Env:\FEISHU_APP_ID
-Remove-Item Env:\FEISHU_APP_SECRET
+$env:FEISHU_FOLDER_TOKEN="your_folder_token"
+$env:FEISHU_DOCUMENT_TITLE="轻醒小红书短视频商单脚本"
 ```
 
-## 4. 备用接入方案：lark-cli 用户授权写入
+凭证安全要求：
 
-桌面原 README 中记录的是 `lark-cli` 路线，适合已经完成用户扫码授权、并希望以用户身份创建文档的场景。
+- 不要把真实 `FEISHU_APP_SECRET` 写入 README、脚本或 Git。
+- `.env` 已被 `.gitignore` 忽略，但仍建议只在本机保存。
+- 如果 Secret 曾经外泄，应在飞书开放平台重置。
 
-### 4.1 典型命令
+## 4. 运行命令
+
+安装依赖：
 
 ```bash
-cmd.exe /c "cd /d C:\Users\31963\Desktop && lark-cli docs +create --title \"轻醒x凌二七短视频脚本\" --markdown @轻醒_凌二七短视频脚本.md"
+pip install -r feishu/requirements.txt
 ```
 
-### 4.2 执行逻辑
+先做本地配置检查：
 
-1. 本地生成 Markdown 脚本文件。
-2. 使用 `cmd.exe /c` 进入 Markdown 文件所在目录。
-3. 调用 `lark-cli docs +create`。
-4. 通过 `--markdown @文件名.md` 自动读取 Markdown 内容。
-5. 飞书返回文档 ID 和 URL。
+```bash
+python feishu/write_to_feishu.py --dry-run
+```
 
-### 4.3 注意事项
+确认无误后执行真实写入：
 
-- 如果在 WSL2 或混合终端中运行，建议用 `cmd.exe /c` 调用 Windows 侧的 `lark-cli`。
-- `--markdown @file` 对相对路径敏感，最好先 `cd` 到文件所在目录。
-- 用户授权 token 可能过期，过期后需重新执行：
+```bash
+python feishu/write_to_feishu.py
+```
+
+## 5. 备用方案：lark-cli
+
+如果已经完成 lark-cli 登录授权，也可以使用：
+
+```powershell
+.\feishu\write_with_lark_cli.ps1
+```
+
+该脚本会先合并最终脚本、分镜和质检内容到 `output/feishu_document.md`，再调用 `lark-cli docs +create` 创建飞书文档。
+
+如授权过期，先重新登录：
 
 ```bash
 lark-cli auth login --recommend
 ```
 
-## 5. 备用接入方案：feishu-doc Skill
-
-本机存在 `feishu-doc-1.2.7` skill，理论上支持：
-
-```powershell
-node C:\Users\31963\.agents\skills\feishu-doc-1.2.7\index.js --action create --title "Qingxing x Ling Erqi XHS Video Script"
-node C:\Users\31963\.agents\skills\feishu-doc-1.2.7\index.js --action write --token <doc_token> --content "<script.md 内容>"
-```
-
-也已封装为：
-
-```powershell
-.\write_feishu.ps1
-```
-
-但当前环境实测存在阻塞：
-
-- `C:\Users\31963\.agents\skills\feishu-doc-1.2.7\config.json` 中 `app_id` / `app_secret` 为空。
-- `FEISHU_APP_ID` / `FEISHU_APP_SECRET` 默认未配置。
-- 运行时报错：`Cannot find module '../feishu-common/index.js'`。
-
-因此当前推荐使用第 3 节的 `feishu_write_direct.js`。
-
-## 6. 飞书应用权限要求
+## 6. 飞书权限要求
 
 飞书应用至少需要具备以下能力：
 
-- 获取 tenant access token
-- 创建 Docx 文档
+- 获取 `tenant_access_token`
+- 创建 Docx 文档，或访问指定 Docx 文档
+- 将 Markdown 转换为 Docx blocks
 - 写入 Docx blocks
 
-建议在飞书开放平台为应用开通与云文档相关的权限，例如：
+如果写入失败，优先检查：
 
-- `docx:document:create`
-- `docx:document:write_only`
-- 必要时加入文档读取/编辑相关权限，视租户配置而定
+- `FEISHU_APP_ID` 和 `FEISHU_APP_SECRET` 是否属于同一应用
+- 应用是否已开通云文档相关权限
+- 目标文档或文件夹是否授权给该应用
+- `FEISHU_DOCUMENT_ID` 是否为新版 Docx 文档 token
 
-如果文档创建成功但其他人打不开，需要检查：
+## 7. 中文编码建议
 
-- 文档空间是否允许该应用创建文档
-- 文档是否需要额外共享权限
-- 应用是否只在某个租户或空间内可用
+仓库文件均按 UTF-8 保存。若 PowerShell 或 cmd 出现中文乱码，优先用支持 UTF-8 的编辑器查看文件；脚本内部接口请求会按 `utf-8` 读取 Markdown 正文。
 
-## 7. 排错清单
+## 8. 本次任务结论
 
-### 7.1 获取 token 失败
-
-可能原因：
-
-- `FEISHU_APP_ID` 或 `FEISHU_APP_SECRET` 错误
-- 应用未启用
-- 应用不属于当前租户
-
-处理方式：
-
-- 重新确认 App ID / Secret
-- 确认应用已发布或在测试企业内可用
-- 不要在 README 中明文保存 Secret
-
-### 7.2 创建文档失败
-
-可能原因：
-
-- 应用没有云文档创建权限
-- 租户未授权该应用访问云文档
-- 接口权限未审批
-
-处理方式：
-
-- 在飞书开放平台补齐 Docx 权限
-- 重新发布/安装应用
-- 再运行 `feishu_write_direct.js`
-
-### 7.3 lark-cli 找不到文件
-
-可能原因：
-
-- `--markdown @file` 使用了错误的相对路径
-- 当前目录不是 Markdown 文件所在目录
-
-处理方式：
-
-```bash
-cmd.exe /c "cd /d C:\Users\31963\Desktop && lark-cli docs +create --title \"标题\" --markdown @文件名.md"
-```
-
-### 7.4 中文乱码
-
-可能原因：
-
-- PowerShell / cmd 编码与文件编码不一致
-- 中文标题被错误解释
-
-处理方式：
-
-- 脚本内部标题尽量使用 ASCII，例如 `Qingxing x Ling Erqi XHS Video Script`
-- Markdown 正文保留 UTF-8
-- 必要时使用 VS Code 或支持 UTF-8 的编辑器查看
-
-## 8. 推荐长期方案
-
-短期推荐：
-
-- 使用 `feishu_write_direct.js`
-- Secret 通过环境变量临时注入
-- 文档链接写回 README
-
-长期推荐：
-
-- 修复或安装 `feishu-common`
-- 将 `write_feishu.ps1` 与 `feishu-doc` skill 标准化
-- 把 `script.md -> 飞书文档` 做成固定命令
-- Secret 存放到安全的本地密钥管理器或环境变量，不进入 Git/README
-
-## 9. 本次任务结论
-
-本次已经完成：
+本项目已经完成：
 
 - 基于凌二七产出 60-90 秒小红书短视频脚本。
-- 脚本包含标题、开头钩子、完整口播、产品植入点、结尾 CTA、合规风险提醒。
-- 分镜超过 6 个镜头，包含画面、口播/字幕、道具/场景、时长建议。
-- 通过自动化脚本写入飞书文档。
-- README 中说明了两种接入方式：Open API 直连与 lark-cli 用户授权。
-
-最终建议使用链接：
-
-<https://feishu.cn/docx/PAAId8BK4oeSJxxCGnscZqQrnlb>
+- 输出标题、开头钩子、完整口播、产品植入点、结尾 CTA 和拍摄提示。
+- 输出 6 个以上分镜，包含画面、口播/字幕、道具/场景、时长建议。
+- 输出食品类商单合规风险质检。
+- 提供 Python Open API 直连和 lark-cli 两种飞书自动化写入路径。

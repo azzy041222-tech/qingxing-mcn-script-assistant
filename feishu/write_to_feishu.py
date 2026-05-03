@@ -4,9 +4,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-import requests
-
-
 ROOT = Path(__file__).resolve().parents[1]
 FEISHU_API = "https://open.feishu.cn/open-apis"
 
@@ -42,6 +39,8 @@ def read_markdown() -> str:
 
 
 def feishu_request(method: str, path: str, token: str | None = None, **kwargs: Any) -> dict[str, Any]:
+    import requests
+
     headers = kwargs.pop("headers", {})
     headers.setdefault("Content-Type", "application/json; charset=utf-8")
     if token:

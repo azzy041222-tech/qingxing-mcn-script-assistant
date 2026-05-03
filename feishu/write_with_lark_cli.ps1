@@ -28,4 +28,4 @@ $content = @(
 
 Set-Content -Path $merged -Value $content -Encoding UTF8
 
-lark-cli docs +create --title "轻醒小红书短视频商单脚本" --markdown $content
+lark-cli docs +create --title "轻醒小红书短视频商单脚本" --markdown "@$merged"

@@ -44,7 +44,7 @@
 - 小红书：用于达人调研、内容风格观察与参考素材记录。
 - 飞书开放平台：用于将最终脚本以自动化方式写入飞书文档。
 - lark-cli：作为飞书用户授权写入的备用方案。
-- Node.js 脚本：用于通过飞书 Open API 直连创建并写入 Docx 文档。
+- Python 脚本：用于通过飞书 Open API 直连创建并写入 Docx 文档。
 
 ## 工作流概览
 
@@ -82,27 +82,28 @@ output/risk_check.md
 
 ### 4. 运行飞书自动化写入
 
-本次实际成功使用的是飞书 Open API 直连写入方案。运行时不把密钥写进仓库，而是通过环境变量临时注入：
+推荐使用仓库内的 Python Open API 直连写入方案。运行时不把密钥写进仓库，而是通过环境变量临时注入：
 
 ```powershell
 $env:FEISHU_APP_ID="cli_xxx"
 $env:FEISHU_APP_SECRET="your_app_secret"
-node .\feishu_write_direct.js
+$env:FEISHU_DOCUMENT_ID="your_docx_document_id"
+python .\feishu\write_to_feishu.py --dry-run
+python .\feishu\write_to_feishu.py
 ```
 
-如果使用仓库中的备用 Python 脚本，可参考：
+如果希望创建新文档而不是写入已有文档，可改为配置 `FEISHU_FOLDER_TOKEN`：
 
-```bash
-pip install requests
-python feishu/write_to_feishu.py --dry-run
-python feishu/write_to_feishu.py
+```powershell
+$env:FEISHU_FOLDER_TOKEN="your_folder_token"
+$env:FEISHU_DOCUMENT_TITLE="轻醒小红书短视频商单脚本"
+python .\feishu\write_to_feishu.py
 ```
 
 如果使用 lark-cli 备用方案，可参考：
 
 ```powershell
-lark-cli auth login --recommend
-lark-cli docs +create --title "轻醒x凌二七短视频脚本" --markdown @script.md
+.\feishu\write_with_lark_cli.ps1
 ```
 
 ## 最终交付
@@ -125,11 +126,11 @@ lark-cli docs +create --title "轻醒x凌二七短视频脚本" --markdown @scri
 - [x] 完成最终脚本
 - [x] 完成分镜设计
 - [x] 完成飞书自动化写入
-- [ ] 提交 GitHub 仓库链接
+- [x] 提交 GitHub 仓库链接
 
 ## 飞书自动化接入结果
 
-本项目已完成飞书文档自动化写入，不是手动复制粘贴。实际流程为：本地生成 Markdown 脚本文件，脚本读取脚本/分镜/质检结果，通过飞书开放平台 API 获取 `tenant_access_token`，创建 Docx 文档，并将内容转换为飞书 blocks 写入。
+本项目提供飞书文档自动化写入脚本，不是手动复制粘贴。实际流程为：本地生成 Markdown 脚本文件，脚本读取脚本/分镜/质检结果，通过飞书开放平台 API 获取 `tenant_access_token`，创建或更新 Docx 文档，并将内容转换为飞书 blocks 写入。
 
 最终飞书文档：
 
@@ -145,8 +146,8 @@ lark-cli docs +create --title "轻醒x凌二七短视频脚本" --markdown @scri
 | --- | --- | --- | --- |
 | lark-cli 用户授权依赖登录态 | 需要用户扫码授权，token 可能过期 | 查看 `lark-cli auth login --recommend` 路线，确认其适合用户身份创建文档 | 保留为备用方案，不作为最终主链路 |
 | 本机 feishu-doc skill 依赖缺失 | 运行时报错 `Cannot find module '../feishu-common/index.js'` | 检查本地 skill 配置，发现 `app_id` / `app_secret` 为空且依赖模块缺失 | 放弃该路线，改用更可控的 Open API 直连脚本 |
-| 飞书 Open API 权限要求 | 创建/写入 Docx 需要应用具备云文档权限 | 确认需要获取 `tenant_access_token`、创建 Docx 文档、写入 Docx blocks | 使用 `feishu_write_direct.js` 直连飞书 Open API，成功创建并写入文档 |
+| 飞书 Open API 权限要求 | 创建/写入 Docx 需要应用具备云文档权限 | 确认需要获取 `tenant_access_token`、创建 Docx 文档、写入 Docx blocks | 使用 `feishu/write_to_feishu.py` 直连飞书 Open API，支持创建或更新文档 |
 | 凭证安全风险 | App Secret 不应出现在 README 或 GitHub | 检查仓库未提交 `.env`，并用 `.gitignore` 忽略密钥文件 | 运行时通过环境变量注入，README 只写占位符 |
 | 中文编码问题 | PowerShell / cmd 下中文标题可能乱码 | 观察到混合终端对中文路径和标题较敏感 | 脚本内部标题可使用 ASCII，Markdown 正文保持 UTF-8 |
 
-最终处理结果：采用 Open API 直连方案完成自动化写入，并保留 lark-cli 和 Python API 作为备选说明。最终文档链接已写入 README 和 `feishu/README_飞书接入说明_优化版.md`。
+最终处理结果：采用 Open API 直连方案沉淀为仓库内可复现脚本，并保留 lark-cli 作为备选说明。最终文档链接已写入 README 和 `feishu/README_飞书接入说明_优化版.md`。
