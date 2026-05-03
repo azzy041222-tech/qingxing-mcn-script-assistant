@@ -32,6 +32,10 @@
 │   ├── README.md
 │   ├── write_to_feishu.py
 │   └── .env.example
+├── frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
 └── output/
     ├── final_script.md
     ├── storyboard.md
@@ -80,7 +84,15 @@ output/storyboard.md
 output/risk_check.md
 ```
 
-### 4. 运行飞书自动化写入
+### 4. 打开静态前端 Demo
+
+```text
+frontend/index.html
+```
+
+该 Demo 是一个纯静态工作台原型，可以在浏览器中直接打开，模拟从 brief 输入、Agent 流程执行到脚本、分镜、质检和飞书交付的完整链路。
+
+### 5. 运行飞书自动化写入
 
 推荐使用仓库内的 Python Open API 直连写入方案。运行时不把密钥写进仓库，而是通过环境变量临时注入：
 
@@ -111,6 +123,7 @@ python .\feishu\write_to_feishu.py
 - 调研报告：`report.md`
 - Prompt 与工作流：`prompts/`
 - 可复用 Skill：`skills/mcn-script-assistant/SKILL.md`
+- 静态前端 Demo：`frontend/index.html`
 - 最终脚本：`output/final_script.md`
 - 分镜设计：`output/storyboard.md`
 - 质检结果：`output/risk_check.md`

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>轻醒 MCN Script Assistant Demo</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="轻醒 MCN 脚本助手 Demo">
+        <aside class="brief-panel">
+          <div class="brand-block">
+            <div class="brand-mark" aria-hidden="true">QX</div>
+            <div>
+              <p class="eyebrow">MCN Script Assistant</p>
+              <h1>轻醒商单脚本工作台</h1>
+            </div>
+          </div>
+
+          <form id="briefForm" class="brief-form">
+            <label>
+              品牌
+              <input name="brand" value="轻醒" />
+            </label>
+            <label>
+              产品
+              <textarea name="product" rows="3">0 蔗糖高蛋白希腊酸奶，原味、蓝莓、黄桃三种口味</textarea>
+            </label>
+            <label>
+              目标人群
+              <textarea name="audience" rows="3">22-35 岁城市女性，关注早餐、轻食、运动后加餐和效率生活</textarea>
+            </label>
+            <label>
+              禁用表达
+              <textarea name="limits" rows="3">减肥、瘦身、掉秤、降糖、治疗、代餐、吃了不胖</textarea>
+            </label>
+
+            <div class="control-row">
+              <button class="primary-action" type="submit">生成方案</button>
+              <button class="ghost-action" id="resetDemo" type="button">重置</button>
+            </div>
+          </form>
+
+          <div class="handoff-card">
+            <span>飞书文档</span>
+            <a href="https://feishu.cn/docx/PAAId8BK4oeSJxxCGnscZqQrnlb" target="_blank" rel="noreferrer">
+              打开交付稿
+            </a>
+          </div>
+        </aside>
+
+        <section class="run-panel">
+          <div class="run-header">
+            <div>
+              <p class="eyebrow">Agent Run</p>
+              <h2>从 brief 到可拍脚本</h2>
+            </div>
+            <div class="run-status" id="runStatus">待生成</div>
+          </div>
+
+          <div class="agent-track" id="agentTrack"></div>
+
+          <div class="product-stage" aria-label="轻醒产品场景预览">
+            <div class="product-cup cup-original">
+              <span>原味</span>
+              <strong>Greek</strong>
+            </div>
+            <div class="product-cup cup-blueberry">
+              <span>蓝莓</span>
+              <strong>0 蔗糖</strong>
+            </div>
+            <div class="product-cup cup-peach">
+              <span>黄桃</span>
+              <strong>高蛋白</strong>
+            </div>
+            <div class="bowl-card">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+
+          <div class="metric-grid">
+            <div>
+              <span>达人匹配</span>
+              <strong id="matchMetric">-</strong>
+            </div>
+            <div>
+              <span>成片时长</span>
+              <strong id="timeMetric">-</strong>
+            </div>
+            <div>
+              <span>分镜数量</span>
+              <strong id="shotMetric">-</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="output-panel">
+          <nav class="tabs" aria-label="输出结果">
+            <button class="tab active" data-tab="script" type="button">脚本</button>
+            <button class="tab" data-tab="storyboard" type="button">分镜</button>
+            <button class="tab" data-tab="risk" type="button">质检</button>
+            <button class="tab" data-tab="delivery" type="button">交付</button>
+          </nav>
+
+          <article class="result-card active" id="scriptPanel">
+            <div class="section-title">
+              <span>Selected Influencer</span>
+              <strong>凌二七</strong>
+            </div>
+            <h2 id="scriptTitle">等待生成脚本</h2>
+            <p class="hook" id="scriptHook">点击“生成方案”后展示完整口播。</p>
+            <div class="script-body" id="scriptBody"></div>
+          </article>
+
+          <article class="result-card" id="storyboardPanel">
+            <div class="section-title">
+              <span>Storyboard</span>
+              <strong>8 镜头</strong>
+            </div>
+            <div class="shot-list" id="shotList"></div>
+          </article>
+
+          <article class="result-card" id="riskPanel">
+            <div class="section-title">
+              <span>Risk Check</span>
+              <strong>通过</strong>
+            </div>
+            <div class="risk-grid" id="riskGrid"></div>
+          </article>
+
+          <article class="result-card" id="deliveryPanel">
+            <div class="section-title">
+              <span>Delivery</span>
+              <strong>Feishu Ready</strong>
+            </div>
+            <div class="delivery-stack">
+              <div>
+                <span>写入脚本</span>
+                <code>python feishu/write_to_feishu.py</code>
+              </div>
+              <div>
+                <span>本地来源</span>
+                <code>output/final_script.md + storyboard.md + risk_check.md</code>
+              </div>
+              <div>
+                <span>交付链接</span>
+                <a href="https://feishu.cn/docx/PAAId8BK4oeSJxxCGnscZqQrnlb" target="_blank" rel="noreferrer">
+                  feishu.cn/docx/PAAId8BK4oeSJxxCGnscZqQrnlb
+                </a>
+              </div>
+            </div>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
